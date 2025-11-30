@@ -3,7 +3,12 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   images: {
-    domains: ['placehold.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
+    ],
     unoptimized: true,
   },
   experimental: {
