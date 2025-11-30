@@ -8,6 +8,8 @@ import { Product, Category, Occasion, AgeGroup } from '@/lib/types';
 import SearchBar from '@/components/SearchBar';
 import ProductFilters from '@/components/ProductFilters';
 
+export const dynamic = 'force-dynamic';
+
 export default function ProductsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();

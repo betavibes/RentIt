@@ -17,3 +17,5 @@ coverage/
 *.tgz
 tmp/
 temp/
+
+.vercel

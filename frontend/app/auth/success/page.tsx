@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
+export const dynamic = 'force-dynamic';
+
 export default function AuthSuccessPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
