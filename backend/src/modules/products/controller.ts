@@ -4,15 +4,17 @@ import { pool } from '../../config/database';
 // Get list of products with optional filters
 export const getProducts = async (req: Request, res: Response) => {
     try {
-        const { category, minPrice, maxPrice, size, color, search, sort } = req.query;
+        const { category, minPrice, maxPrice, size, color, search, sort, status, occasion, ageGroup } = req.query;
         let query = `
-      SELECT p.*, c.name as category_name,
+      SELECT p.*, c.name as "categoryName", o.name as "occasionName", ag.name as "ageGroupName",
       COALESCE(
         (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = true LIMIT 1),
         p.image_url
       ) as "imageUrl"
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN occasions o ON p.occasion_id = o.id
+      LEFT JOIN age_groups ag ON p.age_group_id = ag.id
       WHERE 1=1
     `;
         const params: any[] = [];
@@ -47,6 +49,21 @@ export const getProducts = async (req: Request, res: Response) => {
             params.push(color);
             paramIndex++;
         }
+        if (status) {
+            query += ` AND p.status = $${paramIndex}`;
+            params.push(status);
+            paramIndex++;
+        }
+        if (occasion) {
+            query += ` AND o.slug = $${paramIndex}`;
+            params.push(occasion);
+            paramIndex++;
+        }
+        if (ageGroup) {
+            query += ` AND ag.slug = $${paramIndex}`;
+            params.push(ageGroup);
+            paramIndex++;
+        }
         switch (sort) {
             case 'price_asc':
                 query += ' ORDER BY p.price ASC';
@@ -64,7 +81,24 @@ export const getProducts = async (req: Request, res: Response) => {
                 query += ' ORDER BY p.created_at DESC';
         }
         const result = await pool.query(query, params);
-        res.json(result.rows);
+        // Prepend backend base URL to imageUrl if it's a relative path
+        const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
+        const rows = result.rows.map(row => {
+            const product = {
+                ...row,
+                categoryId: row.category_id,
+                occasionId: row.occasion_id,
+                ageGroupId: row.age_group_id,
+                isFeatured: row.is_featured,
+                createdAt: row.created_at,
+                updatedAt: row.updated_at
+            };
+            if (product.imageUrl && !product.imageUrl.startsWith('http')) {
+                product.imageUrl = `${baseUrl}${product.imageUrl}`;
+            }
+            return product;
+        });
+        res.json(rows);
     } catch (error) {
         console.error('Get products error:', error);
         res.status(500).json({ message: 'Server error' });
@@ -76,13 +110,15 @@ export const getProductById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const productResult = await pool.query(
-            `SELECT p.*, c.name as category_name,
+            `SELECT p.*, c.name as "categoryName", o.name as "occasionName", ag.name as "ageGroupName",
              COALESCE(
                 (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = true LIMIT 1),
                 p.image_url
              ) as "imageUrl"
              FROM products p
              LEFT JOIN categories c ON p.category_id = c.id
+             LEFT JOIN occasions o ON p.occasion_id = o.id
+             LEFT JOIN age_groups ag ON p.age_group_id = ag.id
              WHERE p.id = $1`,
             [id]
         );
@@ -93,9 +129,33 @@ export const getProductById = async (req: Request, res: Response) => {
             'SELECT * FROM product_images WHERE product_id = $1 ORDER BY is_primary DESC, created_at ASC',
             [id]
         );
-        res.json({ ...productResult.rows[0], images: imagesResult.rows });
+        const product = {
+            ...productResult.rows[0],
+            categoryId: productResult.rows[0].category_id,
+            occasionId: productResult.rows[0].occasion_id,
+            ageGroupId: productResult.rows[0].age_group_id,
+            isFeatured: productResult.rows[0].is_featured,
+            createdAt: productResult.rows[0].created_at,
+            updatedAt: productResult.rows[0].updated_at,
+            images: imagesResult.rows
+        };
+        res.json(product);
     } catch (error) {
         console.error('Get product error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+export const deleteProduct = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING id', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.json({ message: 'Product deleted' });
+    } catch (error) {
+        console.error('Delete product error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -103,20 +163,21 @@ export const getProductById = async (req: Request, res: Response) => {
 // Create a new product
 export const createProduct = async (req: Request, res: Response) => {
     try {
-        const { name, description, price, deposit, categoryId, size, color, images } = req.body;
+        const { name, description, price, deposit, categoryId, size, color, images, occasionId, ageGroupId } = req.body;
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
             const productResult = await client.query(
-                'INSERT INTO products (name, description, price, deposit, category_id, size, color) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-                [name, description, price, deposit, categoryId, size, color]
+                'INSERT INTO products (name, description, price, deposit, category_id, size, color, status, occasion_id, age_group_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+                [name, description, price, deposit, categoryId, size, color, req.body.status || 'active', occasionId, ageGroupId]
             );
             const product = productResult.rows[0];
             if (images && images.length > 0) {
                 for (let i = 0; i < images.length; i++) {
+                    const imageData = typeof images[i] === 'string' ? { url: images[i], orderNumber: i + 1 } : images[i];
                     await client.query(
-                        'INSERT INTO product_images (product_id, url, is_primary) VALUES ($1, $2, $3)',
-                        [product.id, images[i], i === 0]
+                        'INSERT INTO product_images (product_id, url, is_primary, order_number) VALUES ($1, $2, $3, $4)',
+                        [product.id, imageData.url, i === 0, imageData.orderNumber || (i + 1)]
                     );
                 }
             }
@@ -157,13 +218,13 @@ export const updateProductStatus = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, description, price, deposit, categoryId, size, color, images } = req.body;
+        const { name, description, price, deposit, categoryId, size, color, images, occasionId, ageGroupId } = req.body;
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
             const updateResult = await client.query(
-                'UPDATE products SET name = $1, description = $2, price = $3, deposit = $4, category_id = $5, size = $6, color = $7 WHERE id = $8 RETURNING *',
-                [name, description, price, deposit, categoryId, size, color, id]
+                'UPDATE products SET name = $1, description = $2, price = $3, deposit = $4, category_id = $5, size = $6, color = $7, status = $8, occasion_id = $9, age_group_id = $10 WHERE id = $11 RETURNING *',
+                [name, description, price, deposit, categoryId, size, color, req.body.status || 'active', occasionId, ageGroupId, id]
             );
             if (updateResult.rows.length === 0) {
                 await client.query('ROLLBACK');
@@ -172,9 +233,10 @@ export const updateProduct = async (req: Request, res: Response) => {
             if (images && images.length > 0) {
                 await client.query('DELETE FROM product_images WHERE product_id = $1', [id]);
                 for (let i = 0; i < images.length; i++) {
+                    const imageData = typeof images[i] === 'string' ? { url: images[i], orderNumber: i + 1 } : images[i];
                     await client.query(
-                        'INSERT INTO product_images (product_id, url, is_primary) VALUES ($1, $2, $3)',
-                        [id, images[i], i === 0]
+                        'INSERT INTO product_images (product_id, url, is_primary, order_number) VALUES ($1, $2, $3, $4)',
+                        [id, imageData.url, i === 0, imageData.orderNumber || (i + 1)]
                     );
                 }
             }

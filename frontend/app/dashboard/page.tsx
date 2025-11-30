@@ -109,22 +109,22 @@ export default function DashboardPage() {
                                     <div className="flex items-start justify-between mb-3">
                                         <div>
                                             <div className="text-xs text-slate-500 uppercase mb-1">
-                                                Order Placed: {new Date(order.createdAt).toLocaleDateString('en-US', {
+                                                Order Placed: {new Date(order.createdAt).toLocaleDateString('en-GB', {
                                                     month: 'long',
                                                     day: 'numeric',
                                                     year: 'numeric'
                                                 })}
                                             </div>
                                             <div className="text-xs text-slate-500">
-                                                Order ID: #{order.id.slice(0, 8).toUpperCase()}
+                                                Order ID: #{order.display_id || order.id.slice(0, 8).toUpperCase()}
                                             </div>
                                         </div>
                                         <div className="text-right">
                                             <div className="text-white font-semibold">₹{order.totalAmount}</div>
                                             <span className={`inline-block px-2 py-1 rounded text-xs font-medium mt-1 ${order.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                                                    order.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400' :
-                                                        order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                            'bg-red-500/20 text-red-400'
+                                                order.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400' :
+                                                    order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                        'bg-red-500/20 text-red-400'
                                                 }`}>
                                                 {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                             </span>
@@ -133,7 +133,7 @@ export default function DashboardPage() {
 
                                     <div className="border-t border-slate-700 pt-3 mt-3">
                                         <div className="text-sm text-slate-400 mb-2">
-                                            Rental Period: {new Date(order.rentalStartDate).toLocaleDateString()} - {new Date(order.rentalEndDate).toLocaleDateString()}
+                                            Rental Period: {new Date(order.rentalStartDate).toLocaleDateString('en-GB')} - {new Date(order.rentalEndDate).toLocaleDateString('en-GB')}
                                         </div>
                                         <Link
                                             href={`/orders/${order.id}`}

@@ -1,16 +1,22 @@
 'use client';
 
 import React from 'react';
-import { Category } from '@/lib/types';
+import { Category, Occasion, AgeGroup } from '@/lib/types';
 
 interface ProductFiltersProps {
     categories: Category[];
+    occasions: Occasion[];
+    ageGroups: AgeGroup[];
     selectedCategories: string[];
+    selectedOccasions: string[];
+    selectedAgeGroups: string[];
     minPrice: number;
     maxPrice: number;
     selectedSizes: string[];
     selectedColors: string[];
     onCategoryChange: (slug: string) => void;
+    onOccasionChange: (slug: string) => void;
+    onAgeGroupChange: (slug: string) => void;
     onPriceChange: (min: number, max: number) => void;
     onSizeChange: (size: string) => void;
     onColorChange: (color: string) => void;
@@ -31,18 +37,24 @@ const COLORS = [
 
 export default function ProductFilters({
     categories,
+    occasions,
+    ageGroups,
     selectedCategories,
+    selectedOccasions,
+    selectedAgeGroups,
     minPrice,
     maxPrice,
     selectedSizes,
     selectedColors,
     onCategoryChange,
+    onOccasionChange,
+    onAgeGroupChange,
     onPriceChange,
     onSizeChange,
     onColorChange,
     onClearFilters
 }: ProductFiltersProps) {
-    const hasActiveFilters = selectedCategories.length > 0 || selectedSizes.length > 0 ||
+    const hasActiveFilters = selectedCategories.length > 0 || selectedOccasions.length > 0 || selectedAgeGroups.length > 0 || selectedSizes.length > 0 ||
         selectedColors.length > 0 || minPrice > 0 || maxPrice < 10000;
 
     return (
@@ -73,6 +85,46 @@ export default function ProductFilters({
                             />
                             <span className="ml-2 text-sm text-slate-400 group-hover:text-white">
                                 {category.name}
+                            </span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            {/* Occasions */}
+            <div className="mb-6">
+                <h4 className="text-sm font-semibold text-slate-300 mb-3">Occasions</h4>
+                <div className="space-y-2">
+                    {occasions.map((occasion) => (
+                        <label key={occasion.id} className="flex items-center cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                checked={selectedOccasions.includes(occasion.slug)}
+                                onChange={() => onOccasionChange(occasion.slug)}
+                                className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
+                            />
+                            <span className="ml-2 text-sm text-slate-400 group-hover:text-white">
+                                {occasion.name}
+                            </span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            {/* Age Groups */}
+            <div className="mb-6">
+                <h4 className="text-sm font-semibold text-slate-300 mb-3">Age Groups</h4>
+                <div className="space-y-2">
+                    {ageGroups.map((ageGroup) => (
+                        <label key={ageGroup.id} className="flex items-center cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                checked={selectedAgeGroups.includes(ageGroup.slug)}
+                                onChange={() => onAgeGroupChange(ageGroup.slug)}
+                                className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
+                            />
+                            <span className="ml-2 text-sm text-slate-400 group-hover:text-white">
+                                {ageGroup.name}
                             </span>
                         </label>
                     ))}
@@ -115,8 +167,8 @@ export default function ProductFilters({
                             key={size}
                             onClick={() => onSizeChange(size)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedSizes.includes(size)
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                                 }`}
                         >
                             {size}
@@ -134,8 +186,8 @@ export default function ProductFilters({
                             key={color.value}
                             onClick={() => onColorChange(color.value)}
                             className={`w-8 h-8 rounded-full border-2 transition-all ${selectedColors.includes(color.value)
-                                    ? 'border-blue-500 ring-2 ring-blue-500/50'
-                                    : 'border-slate-600 hover:border-slate-400'
+                                ? 'border-blue-500 ring-2 ring-blue-500/50'
+                                : 'border-slate-600 hover:border-slate-400'
                                 }`}
                             style={{ backgroundColor: color.hex }}
                             title={color.name}

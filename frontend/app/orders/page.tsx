@@ -75,10 +75,10 @@ export default function OrdersPage() {
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-lg font-semibold">Order #{order.id.slice(0, 8)}</h3>
+                                            <h3 className="text-lg font-semibold">Order #{order.display_id || order.id.slice(0, 8)}</h3>
                                             <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>{order.status.toUpperCase()}</span>
                                         </div>
-                                        <p className="text-sm text-slate-400">Placed on {new Date(order.createdAt).toLocaleDateString()}</p>
+                                        <p className="text-sm text-slate-400">Placed on {new Date(order.createdAt).toLocaleDateString('en-GB')}</p>
                                     </div>
                                     <div className="text-right">
                                         <div className="text-2xl font-bold">₹{order.totalAmount + order.depositAmount}</div>
@@ -86,7 +86,7 @@ export default function OrdersPage() {
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                                    <div><span className="text-slate-400">Rental Period:</span><p className="font-medium">{new Date(order.rentalStartDate).toLocaleDateString()} - {new Date(order.rentalEndDate).toLocaleDateString()}</p></div>
+                                    <div><span className="text-slate-400">Rental Period:</span><p className="font-medium">{new Date(order.rentalStartDate).toLocaleDateString('en-GB')} - {new Date(order.rentalEndDate).toLocaleDateString('en-GB')}</p></div>
                                     {order.items && <div><span className="text-slate-400">Items:</span><p className="font-medium">{order.items.length} product(s)</p></div>}
                                 </div>
                                 <div className="flex gap-3">

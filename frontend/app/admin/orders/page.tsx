@@ -68,8 +68,8 @@ export default function AdminOrdersPage() {
                             key={status}
                             onClick={() => setFilter(status)}
                             className={`p-4 rounded-xl border transition-all ${filter === status
-                                    ? 'bg-blue-600 border-blue-500'
-                                    : 'bg-slate-800 border-white/10 hover:border-white/20'
+                                ? 'bg-blue-600 border-blue-500'
+                                : 'bg-slate-800 border-white/10 hover:border-white/20'
                                 }`}
                         >
                             <div className="text-2xl font-bold">{orders.filter(o => status === 'all' || o.status === status).length}</div>
@@ -96,14 +96,14 @@ export default function AdminOrdersPage() {
                             <tbody className="divide-y divide-white/10">
                                 {orders.map((order) => (
                                     <tr key={order.id} className="hover:bg-slate-700/50">
-                                        <td className="px-6 py-4 text-sm font-mono">#{order.id.slice(0, 8)}</td>
+                                        <td className="px-6 py-4 text-sm font-mono">#{order.display_id || order.id.slice(0, 8)}</td>
                                         <td className="px-6 py-4">
                                             <div className="text-sm font-medium">{order.userName}</div>
                                             <div className="text-xs text-slate-400">{order.userEmail}</div>
                                         </td>
                                         <td className="px-6 py-4 text-sm">{order.itemCount || order.items?.length || 0}</td>
                                         <td className="px-6 py-4 text-sm">
-                                            {new Date(order.rentalStartDate).toLocaleDateString()} - {new Date(order.rentalEndDate).toLocaleDateString()}
+                                            {new Date(order.rentalStartDate).toLocaleDateString('en-GB')} - {new Date(order.rentalEndDate).toLocaleDateString('en-GB')}
                                         </td>
                                         <td className="px-6 py-4 text-sm font-bold">₹{order.totalAmount + order.depositAmount}</td>
                                         <td className="px-6 py-4">

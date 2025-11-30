@@ -24,7 +24,7 @@ export const register = async (req: Request, res: Response) => {
 
         // Create user
         const newUser = await pool.query(
-            'INSERT INTO users (id, email, password_hash, name, phone_number) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, name, role, phone_number, gender, size, college',
+            'INSERT INTO users (id, email, password_hash, name, phone_number) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, name, role, phone_number, is_active',
             [uuidv4(), email, hashedPassword, name, phone]
         );
 
@@ -97,7 +97,7 @@ export const getMe = async (req: any, res: Response) => {
         }
 
         const userId = req.user.id;
-        const result = await pool.query('SELECT id, email, name, role, phone_number, gender, size, college, created_at FROM users WHERE id = $1', [userId]);
+        const result = await pool.query('SELECT id, email, name, role, phone_number, is_active, created_at FROM users WHERE id = $1', [userId]);
         const user = result.rows[0];
 
         if (!user) {
@@ -114,11 +114,11 @@ export const getMe = async (req: any, res: Response) => {
 export const updateProfile = async (req: any, res: Response) => {
     try {
         const userId = req.user.id;
-        const { name, phone, gender, size, college } = req.body;
+        const { name, phone } = req.body;
 
         const result = await pool.query(
-            'UPDATE users SET name = COALESCE($1, name), phone_number = COALESCE($2, phone_number), gender = COALESCE($3, gender), size = COALESCE($4, size), college = COALESCE($5, college) WHERE id = $6 RETURNING id, email, name, role, phone_number, gender, size, college, created_at',
-            [name, phone, gender, size, college, userId]
+            'UPDATE users SET name = COALESCE($1, name), phone_number = COALESCE($2, phone_number) WHERE id = $3 RETURNING id, email, name, role, phone_number, is_active, created_at',
+            [name, phone, userId]
         );
 
         if (result.rows.length === 0) {
@@ -129,5 +129,27 @@ export const updateProfile = async (req: any, res: Response) => {
     } catch (error) {
         console.error('Update profile error:', error);
         res.status(500).json({ message: 'Server error' });
+    }
+};
+
+export const googleCallback = async (req: any, res: Response) => {
+    try {
+        const user = req.user;
+
+        if (!user) {
+            return res.redirect('http://localhost:3000/auth/login?error=auth_failed');
+        }
+
+        const token = jwt.sign(
+            { id: user.id, role: user.role },
+            process.env.JWT_SECRET || 'default_secret',
+            { expiresIn: '1d' }
+        );
+
+        // Redirect to frontend with token
+        res.redirect(`http://localhost:3000/auth/success?token=${token}`);
+    } catch (error) {
+        console.error('Google callback error:', error);
+        res.redirect('http://localhost:3000/auth/login?error=server_error');
     }
 };

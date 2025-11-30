@@ -65,8 +65,8 @@ export default function OrderDetailsPage() {
                 <div className="bg-slate-800 rounded-xl p-8 border border-white/10 mb-6">
                     <div className="flex justify-between items-start mb-6">
                         <div>
-                            <h1 className="text-3xl font-bold mb-2">Order #{order.id.slice(0, 8)}</h1>
-                            <p className="text-slate-400">Placed on {new Date(order.createdAt).toLocaleDateString()}</p>
+                            <h1 className="text-3xl font-bold mb-2">Order #{order.display_id || order.id.slice(0, 8)}</h1>
+                            <p className="text-slate-400">Placed on {new Date(order.createdAt).toLocaleDateString('en-GB')}</p>
                         </div>
                         <span className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>{order.status.toUpperCase()}</span>
                     </div>
@@ -74,7 +74,7 @@ export default function OrderDetailsPage() {
                     <div className="grid grid-cols-2 gap-6 mb-6">
                         <div>
                             <h3 className="text-sm text-slate-400 mb-2">Rental Period</h3>
-                            <p className="font-medium">{new Date(order.rentalStartDate).toLocaleDateString()} - {new Date(order.rentalEndDate).toLocaleDateString()}</p>
+                            <p className="font-medium">{new Date(order.rentalStartDate).toLocaleDateString('en-GB')} - {new Date(order.rentalEndDate).toLocaleDateString('en-GB')}</p>
                         </div>
                         <div>
                             <h3 className="text-sm text-slate-400 mb-2">Total Amount</h3>

@@ -4,7 +4,7 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import { initializeDatabase, testDatabaseConnection } from '../src/db';
-import { Logger } from '../src/utils/logger';
+import Logger from '../src/utils/logger';
 
 async function setupDatabase() {
   try {

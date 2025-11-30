@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { LoginCredentials, RegisterData, AuthResponse, User, Product, Category, Order, OrderItem } from '../types';
+import { LoginCredentials, RegisterData, AuthResponse, User, Product, Category, Occasion, AgeGroup, Order, OrderItem } from '../types';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:3001/api';
 
 class ApiService {
     private client: AxiosInstance;
@@ -112,6 +112,16 @@ class ApiService {
         return data as unknown as Category[];
     }
 
+    async getOccasions(): Promise<Occasion[]> {
+        const data = await this.client.get<Occasion[]>('/products/occasions/all');
+        return data as unknown as Occasion[];
+    }
+
+    async getAgeGroups(): Promise<AgeGroup[]> {
+        const data = await this.client.get<AgeGroup[]>('/products/age-groups/all');
+        return data as unknown as AgeGroup[];
+    }
+
     async getProducts(filters?: any): Promise<Product[]> {
         const data = await this.client.get<Product[]>('/products', { params: filters });
         return data as unknown as Product[];
@@ -128,6 +138,16 @@ class ApiService {
         return res as unknown as Category;
     }
 
+    async createOccasion(data: Partial<Occasion>): Promise<Occasion> {
+        const res = await this.client.post<Occasion>('/products/occasions', data);
+        return res as unknown as Occasion;
+    }
+
+    async createAgeGroup(data: Partial<AgeGroup>): Promise<AgeGroup> {
+        const res = await this.client.post<AgeGroup>('/products/age-groups', data);
+        return res as unknown as AgeGroup;
+    }
+
     async createProduct(data: Partial<Product> & { images: string[] }): Promise<Product> {
         const res = await this.client.post<Product>('/products', data);
         return res as unknown as Product;
@@ -142,6 +162,32 @@ class ApiService {
     async updateProduct(id: string, data: Partial<Product> & { images?: string[] }): Promise<Product> {
         const res = await this.client.put<Product>(`/products/${id}`, data);
         return res as unknown as Product;
+    }
+
+    async deleteProduct(id: string): Promise<any> {
+        const res = await this.client.delete(`/products/${id}`);
+        return res;
+    }
+
+    // Upload product images
+    async uploadProductImages(files: File[]): Promise<string[]> {
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('images', file);
+        });
+
+        const res = await this.client.post<{ images: string[] }>('/upload/product-images', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return (res as any).images;
+    }
+
+    // Generate AI images
+    async generateAIImages(data: { name: string; category: string; description?: string; color?: string }): Promise<{ images: string[]; isMock: boolean; message?: string }> {
+        const res = await this.client.post<{ images: string[]; isMock: boolean; message?: string }>('/ai/generate-images', data);
+        return res as unknown as { images: string[]; isMock: boolean; message?: string };
     }
 
     // Rental/Order Methods

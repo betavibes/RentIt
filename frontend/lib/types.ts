@@ -36,6 +36,20 @@ export interface Category {
     imageUrl?: string;
 }
 
+export interface Occasion {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+}
+
+export interface AgeGroup {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+}
+
 export interface ProductImage {
     id: string;
     url: string;
@@ -50,9 +64,14 @@ export interface Product {
     deposit: number;
     categoryId: string;
     categoryName?: string;
+    occasionId?: string;
+    occasionName?: string;
+    ageGroupId?: string;
+    ageGroupName?: string;
     size?: string;
     color?: string;
     condition: 'available' | 'rented' | 'laundry' | 'damaged';
+    status?: 'active' | 'inactive';
     isFeatured: boolean;
     images?: ProductImage[];
     imageUrl?: string;
@@ -68,6 +87,7 @@ export interface ApiResponse<T> {
 
 export interface Order {
     id: string;
+    display_id?: string;
     userId: string;
     userName?: string;
     userEmail?: string;

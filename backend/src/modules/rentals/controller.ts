@@ -7,7 +7,7 @@ export const createOrder = async (req: any, res: Response) => {
     const client = await pool.connect();
     try {
         const userId = req.user.id;
-        const { items, rentalStartDate, rentalEndDate, notes } = req.body;
+        const { items, rentalStartDate, rentalEndDate, notes, paymentMethod = 'cod' } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ message: 'Order must contain at least one item' });
@@ -44,12 +44,33 @@ export const createOrder = async (req: any, res: Response) => {
             depositAmount += itemDeposit;
         }
 
+        // Generate Display ID
+        const date = new Date();
+        const monthYear = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase().replace(' ', '-'); // NOV-2025
+
+        // Find the latest order for this month to increment
+        const lastOrderResult = await client.query(
+            `SELECT display_id FROM orders WHERE display_id LIKE $1 ORDER BY display_id DESC LIMIT 1`,
+            [`${monthYear}-%`]
+        );
+
+        let nextSequence = 1;
+        if (lastOrderResult.rows.length > 0) {
+            const lastId = lastOrderResult.rows[0].display_id;
+            const parts = lastId.split('-');
+            if (parts.length === 3) {
+                nextSequence = parseInt(parts[2], 10) + 1;
+            }
+        }
+
+        const displayId = `${monthYear}-${nextSequence.toString().padStart(5, '0')}`;
+
         // Create order
         const orderId = uuidv4();
         await client.query(
-            `INSERT INTO orders (id, user_id, total_amount, deposit_amount, status, rental_start_date, rental_end_date, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [orderId, userId, totalAmount, depositAmount, 'pending', rentalStartDate, rentalEndDate, notes]
+            `INSERT INTO orders (id, user_id, total_amount, deposit_amount, status, rental_start_date, rental_end_date, notes, display_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [orderId, userId, totalAmount, depositAmount, 'pending', rentalStartDate, rentalEndDate, notes, displayId]
         );
 
         // Create order items and update product status
@@ -73,6 +94,17 @@ export const createOrder = async (req: any, res: Response) => {
             );
         }
 
+        // Create payment record for COD
+        const paymentId = uuidv4();
+        const transactionId = `TXN${Date.now()}${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        const paymentAmount = totalAmount + depositAmount;
+
+        await client.query(
+            `INSERT INTO payments (id, order_id, amount, payment_method, status, transaction_id)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+            [paymentId, orderId, paymentAmount, paymentMethod, 'pending', transactionId]
+        );
+
         await client.query('COMMIT');
 
         // Fetch created order with details
@@ -84,7 +116,12 @@ export const createOrder = async (req: any, res: Response) => {
             [orderId]
         );
 
-        res.status(201).json(orderResult.rows[0]);
+        res.status(201).json({
+            ...orderResult.rows[0],
+            paymentId,
+            transactionId,
+            paymentMethod
+        });
     } catch (error) {
         await client.query('ROLLBACK');
         console.error('Create order error:', error);

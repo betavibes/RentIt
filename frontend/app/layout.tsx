@@ -9,7 +9,7 @@ import Footer from '@/components/common/Footer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'RentIt - Premium Dress Rental Platform',
+  title: 'Bharat Costumes - Premium Dress Rental Platform',
   description: 'Rent beautiful dresses for every occasion. Premium quality, affordable prices.',
 };
 

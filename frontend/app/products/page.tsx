@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api/api';
-import { Product, Category } from '@/lib/types';
+import { Product, Category, Occasion, AgeGroup } from '@/lib/types';
 import SearchBar from '@/components/SearchBar';
 import ProductFilters from '@/components/ProductFilters';
 
@@ -14,12 +14,20 @@ export default function ProductsPage() {
 
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [occasions, setOccasions] = useState<Occasion[]>([]);
+    const [ageGroups, setAgeGroups] = useState<AgeGroup[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Filter state from URL
     const [search, setSearch] = useState(searchParams.get('search') || '');
     const [selectedCategories, setSelectedCategories] = useState<string[]>(
         searchParams.get('categories')?.split(',').filter(Boolean) || []
+    );
+    const [selectedOccasions, setSelectedOccasions] = useState<string[]>(
+        searchParams.get('occasions')?.split(',').filter(Boolean) || []
+    );
+    const [selectedAgeGroups, setSelectedAgeGroups] = useState<string[]>(
+        searchParams.get('ageGroups')?.split(',').filter(Boolean) || []
     );
     const [minPrice, setMinPrice] = useState(Number(searchParams.get('minPrice')) || 0);
     const [maxPrice, setMaxPrice] = useState(Number(searchParams.get('maxPrice')) || 10000);
@@ -38,27 +46,35 @@ export default function ProductsPage() {
     useEffect(() => {
         fetchProducts();
         updateURL();
-    }, [search, selectedCategories, minPrice, maxPrice, selectedSizes, selectedColors, sort]);
+    }, [search, selectedCategories, selectedOccasions, selectedAgeGroups, minPrice, maxPrice, selectedSizes, selectedColors, sort]);
 
     const fetchCategories = async () => {
         try {
-            const cats = await api.getCategories();
+            const [cats, occs, ages] = await Promise.all([
+                api.getCategories(),
+                api.getOccasions(),
+                api.getAgeGroups()
+            ]);
             setCategories(cats);
+            setOccasions(occs);
+            setAgeGroups(ages);
         } catch (error) {
-            console.error('Failed to fetch categories:', error);
+            console.error('Failed to fetch filter data:', error);
         }
     };
 
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const filters: any = {};
+            const filters: any = { status: 'active' };
             if (search) filters.search = search;
-            if (selectedCategories.length > 0) filters.category = selectedCategories[0]; // API supports single category for now
+            if (selectedCategories.length > 0) filters.category = selectedCategories[0];
+            if (selectedOccasions.length > 0) filters.occasion = selectedOccasions[0];
+            if (selectedAgeGroups.length > 0) filters.ageGroup = selectedAgeGroups[0];
             if (minPrice > 0) filters.minPrice = minPrice;
             if (maxPrice < 10000) filters.maxPrice = maxPrice;
-            if (selectedSizes.length > 0) filters.size = selectedSizes[0]; // API supports single size for now
-            if (selectedColors.length > 0) filters.color = selectedColors[0]; // API supports single color for now
+            if (selectedSizes.length > 0) filters.size = selectedSizes[0];
+            if (selectedColors.length > 0) filters.color = selectedColors[0];
             if (sort) filters.sort = sort;
 
             const prods = await api.getProducts(filters);
@@ -74,6 +90,8 @@ export default function ProductsPage() {
         const params = new URLSearchParams();
         if (search) params.set('search', search);
         if (selectedCategories.length > 0) params.set('categories', selectedCategories.join(','));
+        if (selectedOccasions.length > 0) params.set('occasions', selectedOccasions.join(','));
+        if (selectedAgeGroups.length > 0) params.set('ageGroups', selectedAgeGroups.join(','));
         if (minPrice > 0) params.set('minPrice', minPrice.toString());
         if (maxPrice < 10000) params.set('maxPrice', maxPrice.toString());
         if (selectedSizes.length > 0) params.set('sizes', selectedSizes.join(','));
@@ -87,6 +105,18 @@ export default function ProductsPage() {
     const handleCategoryChange = (slug: string) => {
         setSelectedCategories(prev =>
             prev.includes(slug) ? prev.filter(c => c !== slug) : [...prev, slug]
+        );
+    };
+
+    const handleOccasionChange = (slug: string) => {
+        setSelectedOccasions(prev =>
+            prev.includes(slug) ? prev.filter(o => o !== slug) : [...prev, slug]
+        );
+    };
+
+    const handleAgeGroupChange = (slug: string) => {
+        setSelectedAgeGroups(prev =>
+            prev.includes(slug) ? prev.filter(a => a !== slug) : [...prev, slug]
         );
     };
 
@@ -105,6 +135,8 @@ export default function ProductsPage() {
     const handleClearFilters = () => {
         setSearch('');
         setSelectedCategories([]);
+        setSelectedOccasions([]);
+        setSelectedAgeGroups([]);
         setMinPrice(0);
         setMaxPrice(10000);
         setSelectedSizes([]);
@@ -112,15 +144,62 @@ export default function ProductsPage() {
         setSort('newest');
     };
 
-    const activeFiltersCount = selectedCategories.length + selectedSizes.length + selectedColors.length +
+    const activeFiltersCount = selectedCategories.length + selectedOccasions.length + selectedAgeGroups.length + selectedSizes.length + selectedColors.length +
         (minPrice > 0 ? 1 : 0) + (maxPrice < 10000 ? 1 : 0) + (search ? 1 : 0);
 
     return (
         <div className="min-h-screen bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
-                {/* Header with Search */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white mb-4">Collection</h1>
+                {/* Header with Tagline and Promotions */}
+                <div className="mb-12">
+                    {/* Beautiful Tagline */}
+                    <div className="text-center mb-8">
+                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight">
+                            Rent Costumes for Every Event
+                        </h1>
+                        <p className="text-xl md:text-2xl text-slate-300 font-light">
+                            Affordable & Hassle-Free! ✨
+                        </p>
+                    </div>
+
+                    {/* Scrolling Promotional Banner */}
+                    <div className="relative overflow-hidden bg-gradient-to-r from-orange-500/20 via-purple-500/20 to-pink-500/20 border-y border-orange-500/30 py-3 mb-8">
+                        <div className="flex animate-marquee whitespace-nowrap">
+                            <div className="flex items-center gap-8 text-base font-medium">
+                                <span className="flex items-center gap-2 text-orange-300">
+                                    <span className="text-xl">🔥</span>
+                                    <span>First-Time User: Get 20% OFF – Code: <span className="font-mono bg-orange-500/30 px-2 py-1 rounded">WELCOME20</span></span>
+                                </span>
+                                <span className="text-slate-500">•</span>
+                                <span className="flex items-center gap-2 text-purple-300">
+                                    <span className="text-xl">💥</span>
+                                    <span>School Annual Day Special: Flat 15% OFF on all theme costumes</span>
+                                </span>
+                                <span className="text-slate-500">•</span>
+                                <span className="flex items-center gap-2 text-pink-300">
+                                    <span className="text-xl">🎉</span>
+                                    <span>Festive Offer: Rent 2 costumes & get 1 FREE!</span>
+                                </span>
+                                <span className="text-slate-500">•</span>
+                                {/* Duplicate for seamless loop */}
+                                <span className="flex items-center gap-2 text-orange-300">
+                                    <span className="text-xl">🔥</span>
+                                    <span>First-Time User: Get 20% OFF – Code: <span className="font-mono bg-orange-500/30 px-2 py-1 rounded">WELCOME20</span></span>
+                                </span>
+                                <span className="text-slate-500">•</span>
+                                <span className="flex items-center gap-2 text-purple-300">
+                                    <span className="text-xl">💥</span>
+                                    <span>School Annual Day Special: Flat 15% OFF on all theme costumes</span>
+                                </span>
+                                <span className="text-slate-500">•</span>
+                                <span className="flex items-center gap-2 text-pink-300">
+                                    <span className="text-xl">🎉</span>
+                                    <span>Festive Offer: Rent 2 costumes & get 1 FREE!</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                     <SearchBar onSearch={setSearch} initialValue={search} />
                 </div>
 
@@ -130,12 +209,18 @@ export default function ProductsPage() {
                         <div className="sticky top-24">
                             <ProductFilters
                                 categories={categories}
+                                occasions={occasions}
+                                ageGroups={ageGroups}
                                 selectedCategories={selectedCategories}
+                                selectedOccasions={selectedOccasions}
+                                selectedAgeGroups={selectedAgeGroups}
                                 minPrice={minPrice}
                                 maxPrice={maxPrice}
                                 selectedSizes={selectedSizes}
                                 selectedColors={selectedColors}
                                 onCategoryChange={handleCategoryChange}
+                                onOccasionChange={handleOccasionChange}
+                                onAgeGroupChange={handleAgeGroupChange}
                                 onPriceChange={(min, max) => {
                                     setMinPrice(min);
                                     setMaxPrice(max);
@@ -185,6 +270,18 @@ export default function ProductsPage() {
                                     <span key={cat} className="inline-flex items-center gap-1 bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm">
                                         {categories.find(c => c.slug === cat)?.name}
                                         <button onClick={() => handleCategoryChange(cat)} className="hover:text-white">×</button>
+                                    </span>
+                                ))}
+                                {selectedOccasions.map(occ => (
+                                    <span key={occ} className="inline-flex items-center gap-1 bg-pink-500/20 text-pink-300 px-3 py-1 rounded-full text-sm">
+                                        {occasions.find(o => o.slug === occ)?.name}
+                                        <button onClick={() => handleOccasionChange(occ)} className="hover:text-white">×</button>
+                                    </span>
+                                ))}
+                                {selectedAgeGroups.map(age => (
+                                    <span key={age} className="inline-flex items-center gap-1 bg-yellow-500/20 text-yellow-300 px-3 py-1 rounded-full text-sm">
+                                        {ageGroups.find(a => a.slug === age)?.name}
+                                        <button onClick={() => handleAgeGroupChange(age)} className="hover:text-white">×</button>
                                     </span>
                                 ))}
                                 {selectedSizes.map(size => (

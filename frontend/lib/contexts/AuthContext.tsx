@@ -9,6 +9,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     login: (credentials: LoginCredentials) => Promise<void>;
+    socialLogin: (token: string) => Promise<void>;
     register: (data: RegisterData) => Promise<void>;
     logout: () => Promise<void>;
     isAdmin: boolean;
@@ -47,6 +48,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.push(response.user.role === 'admin' ? '/admin/dashboard' : '/');
     };
 
+    const socialLogin = async (token: string) => {
+        localStorage.setItem('token', token);
+        const userData = await api.getCurrentUser();
+        setUser(userData);
+        router.push(userData.role === 'admin' ? '/admin/dashboard' : '/');
+    };
+
     const register = async (data: RegisterData) => {
         const response = await api.register(data);
         setUser(response.user);
@@ -64,6 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             user,
             loading,
             login,
+            socialLogin,
             register,
             logout,
             isAdmin: user?.role === 'admin' || user?.role === 'staff'
