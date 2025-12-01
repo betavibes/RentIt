@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api/api';
@@ -10,7 +10,7 @@ import ProductFilters from '@/components/ProductFilters';
 
 export const dynamic = 'force-dynamic';
 
-export default function ProductsPage() {
+function ProductsPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -43,11 +43,13 @@ export default function ProductsPage() {
 
     useEffect(() => {
         fetchCategories();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         fetchProducts();
         updateURL();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search, selectedCategories, selectedOccasions, selectedAgeGroups, minPrice, maxPrice, selectedSizes, selectedColors, sort]);
 
     const fetchCategories = async () => {
@@ -358,5 +360,24 @@ export default function ProductsPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+function LoadingFallback() {
+    return (
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-white text-lg">Loading products...</p>
+            </div>
+        </div>
+    );
+}
+
+export default function ProductsPage() {
+    return (
+        <Suspense fallback={<LoadingFallback />}>
+            <ProductsPageContent />
+        </Suspense>
     );
 }
