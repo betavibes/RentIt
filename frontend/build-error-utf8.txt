@@ -1,0 +1,101 @@
+﻿
+> frontend@1.0.0 build
+> next build
+
+node.exe : [baseline-browser-mapping] The data in this 
+module is over two months old.  To ensure accurate 
+Baseline data, please update: `npm i 
+baseline-browser-mapping@latest -D`
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([baseline- 
+   brows...ping@latest -D`:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ ΓÜá `eslint` configuration in next.config.js is no 
+longer supported. See more info here: https://nextjs.org
+/docs/app/api-reference/cli/next#next-lint-options
+ ΓÜá Invalid next.config.js options detected: 
+ ΓÜá     Unrecognized key(s) in object: 'eslint'
+ ΓÜá See more info here: 
+https://nextjs.org/docs/messages/invalid-next-config
+ ΓÜá Warning: Next.js inferred your workspace root, but 
+it may not be correct.
+ We detected multiple lockfiles and selected the 
+directory of C:\Users\Anuj 
+Singh\Desktop\RentIt\package-lock.json as the root 
+directory.
+ To silence this warning, set `turbopack.root` in your 
+Next.js config, or consider removing one of the 
+lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/
+next-config-js/turbopack#root-directory for more 
+information.
+ Detected additional lockfiles: 
+   * C:\Users\Anuj 
+Singh\Desktop\RentIt\frontend\package-lock.json
+
+(node:26640) [MODULE_TYPELESS_PACKAGE_JSON] Warning: 
+Module type of file:///C:/Users/Anuj%20Singh/Desktop/Ren
+tIt/frontend/next.config.js is not specified and it 
+doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was 
+detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to 
+C:\Users\Anuj 
+Singh\Desktop\RentIt\frontend\package.json.
+(Use `node --trace-warnings ...` to show where the 
+warning was created)
+   Γû▓ Next.js 16.0.3 (Turbopack)
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ┬╖ serverActions
+
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is 
+over two months old.  To ensure accurate Baseline data, 
+please update: `npm i baseline-browser-mapping@latest 
+-D`
+(node:26640) [MODULE_TYPELESS_PACKAGE_JSON] Warning: 
+Module type of file:///C:/Users/Anuj%20Singh/Desktop/Ren
+tIt/frontend/next.config.js is not specified and it 
+doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was 
+detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to 
+C:\Users\Anuj 
+Singh\Desktop\RentIt\frontend\package.json.
+(Use `node --trace-warnings ...` to show where the 
+warning was created)
+ Γ£ô Compiled successfully in 17.4s
+   Running TypeScript ...
+Failed to compile.
+
+./lib/api/api.ts:130:64
+Type error: Property 'length' does not exist on type 
+'AxiosResponse<Product[], any, {}>'.
+
+[0m [90m 128 |[39m         [36mtry[39m {
+ [90m 129 |[39m             [36mconst[39m data 
+[33m=[39m [36mawait[39m [36mthis[39m[33m.[39mcli
+ent[33m.[39m[36mget[39m[33m<[39m[33mProduct[39m[
+][33m>[39m([32m'/products'[39m[33m,[39m { 
+params[33m:[39m filters })[33m;[39m
+[31m[1m>[22m[39m[90m 130 |[39m             
+console[33m.[39mlog([32m'Products fetched 
+successfully:'[39m[33m,[39m 
+data[33m.[39mlength)[33m;[39m
+ [90m     |[39m                                       
+                         [31m[1m^[22m[39m
+ [90m 131 |[39m             [36mreturn[39m data 
+[36mas[39m unknown [36mas[39m 
+[33mProduct[39m[][33m;[39m
+ [90m 132 |[39m         } [36mcatch[39m (error) {
+ [90m 133 |[39m             
+console[33m.[39merror([32m'Error fetching products 
+in API client:'[39m[33m,[39m error)[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: 
+null

@@ -127,8 +127,9 @@ class ApiService {
         console.log('API URL:', API_URL);
         try {
             const data = await this.client.get<Product[]>('/products', { params: filters });
-            console.log('Products fetched successfully:', data.length);
-            return data as unknown as Product[];
+            const products = data as unknown as Product[];
+            console.log('Products fetched successfully:', products.length);
+            return products;
         } catch (error) {
             console.error('Error fetching products in API client:', error);
             throw error;
