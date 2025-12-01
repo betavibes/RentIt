@@ -47,6 +47,10 @@ function ProductsPageContent() {
     }, []);
 
     useEffect(() => {
+        console.log('Products state updated:', products.length);
+    }, [products]);
+
+    useEffect(() => {
         fetchProducts();
         updateURL();
         // eslint-disable-next-line react-hooks/exhaustive-deps

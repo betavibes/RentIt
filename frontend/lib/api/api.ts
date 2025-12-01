@@ -123,8 +123,16 @@ class ApiService {
     }
 
     async getProducts(filters?: any): Promise<Product[]> {
-        const data = await this.client.get<Product[]>('/products', { params: filters });
-        return data as unknown as Product[];
+        console.log('Fetching products with filters:', filters);
+        console.log('API URL:', API_URL);
+        try {
+            const data = await this.client.get<Product[]>('/products', { params: filters });
+            console.log('Products fetched successfully:', data.length);
+            return data as unknown as Product[];
+        } catch (error) {
+            console.error('Error fetching products in API client:', error);
+            throw error;
+        }
     }
 
     async getProductById(id: string): Promise<Product> {

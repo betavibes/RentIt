@@ -39,8 +39,12 @@ app.use(passport.initialize());
 // Serve static files for uploaded images
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
+});
+
+app.get('/', (req, res) => {
+  res.send('Backend is running!');
 });
 
 app.use('/api/auth', authRoutes);

@@ -80,6 +80,8 @@ export const getProducts = async (req: Request, res: Response) => {
             default:
                 query += ' ORDER BY p.created_at DESC';
         }
+        console.log('Executing product query:', query);
+        console.log('Query params:', params);
         const result = await pool.query(query, params);
         // Prepend backend base URL to imageUrl if it's a relative path
         const baseUrl = process.env.BASE_URL || 'http://localhost:3001';
