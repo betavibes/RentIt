@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const orderId = searchParams.get('orderId');
@@ -49,5 +49,24 @@ export default function PaymentSuccessPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+function LoadingFallback() {
+    return (
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-white text-lg">Loading...</p>
+            </div>
+        </div>
+    );
+}
+
+export default function PaymentSuccessPage() {
+    return (
+        <Suspense fallback={<LoadingFallback />}>
+            <PaymentSuccessContent />
+        </Suspense>
     );
 }
