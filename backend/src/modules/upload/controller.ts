@@ -11,8 +11,9 @@ export const uploadProductImages = async (req: Request, res: Response) => {
         }
 
         // Generate URLs for uploaded files
-        const imageUrls = req.files.map((file: Express.Multer.File) => {
-            return `/uploads/products/${file.filename}`;
+        // Generate URLs for uploaded files
+        const imageUrls = req.files.map((file: any) => {
+            return file.path; // Cloudinary storage puts the URL in file.path
         });
 
         res.json({
